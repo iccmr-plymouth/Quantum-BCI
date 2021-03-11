@@ -11,7 +11,7 @@ def main():
     #-------------------------------------------------------------------------------------
     TestsignaleEnabled = False;
     FrameLength = 1;
-    AcquisitionDurationInSeconds = 20;
+    AcquisitionDurationInSeconds = 60;
     DataFile = "data.csv";
     
     print("Unicorn Acquisition Example")
@@ -75,8 +75,8 @@ def main():
         receiveBuffer = bytearray(receiveBufferBufferLength)
 
         # Declare new variables for alpha BCI
-
-        data_block = np.zeros((int(UnicornPy.SamplingRate * 3.0), 8))
+        analysis_block_window = 1.0
+        data_block = np.zeros((int(UnicornPy.SamplingRate * analysis_block_window), 8))
 
         try:
             # Start data acquisition.
@@ -109,29 +109,43 @@ def main():
                 
                 # Update console to indicate that the data acquisition is running.
                 if i % consoleUpdateRate == 0:
-                    print('.',end='',flush=True)
+                    #print('.',end='',flush=True)
+                    pass
 
 
                 # Code alpha BCI
 
 
-                if i > int(UnicornPy.SamplingRate * 3.0) and i % int(UnicornPy.SamplingRate * 1.0) == 0:
-                    y = signal.filtfilt(b, a, data_block, axis = 0)
-                    y_notched = signal.filtfilt(b_notch, a_notch, y, axis = 0)
+                if i > int(UnicornPy.SamplingRate * analysis_block_window) and i % int(UnicornPy.SamplingRate * 1.0) == 0:
+                    # y = signal.filtfilt(b, a, data_block, axis = 0)
+                    y_notched = signal.filtfilt(b_notch, a_notch, data_block, axis = 0)
                     # y_notched = data_block
-                    print("Reached here!!!")
+                    # print("Reached here!!!")
 
                     # print("data_block: {}".format(data_block))
-                    ts, theta, alpha_low, alpha_high, beta, gamma = get_power_features(signal=y_notched,
-                        sampling_rate=250, size=3.0, overlap=0)
+                    # ts, theta, alpha_low, alpha_high, beta, gamma = get_power_features(signal=y_notched,
+                    #     sampling_rate=250, size=3.0, overlap=0)
+
+                    ts, filtered, features_ts, theta, alpha_low, alpha_high, beta, gamma, plf_pairs, plf = eeg(signal=y_notched,
+                        sampling_rate=UnicornPy.SamplingRate, show=False)
+
                     # print("alpha_low.shape: {} and alpha_high.shape: {}".format(alpha_low.shape, alpha_high.shape))
                     # print("alpha_low: {} \t alpha_high: {}".format(alpha_low[-1], alpha_high[-1]))
-                    a_low_pow = np.mean(alpha_low[:, :])
-                    a_high_pow = np.mean(alpha_high[:, :])
+                    a_low_pow = np.mean(alpha_low[:, :1])
+                    a_high_pow = np.mean(alpha_high[:, :1])
                     m = (a_low_pow + a_high_pow) / 2.0
                     # print("alpha_low.shape: {}".format(alpha_low[:, -1].shape))
                     # print("alpha_low: {} and alpha_high: {}".format(np.mean(alpha_low[:, -1]), np.mean(alpha_high[:, -1])))
-                    print("alpha power: {:.2E}".format(m))
+                    # print("alpha power: {:.2E}".format(m))
+
+                    # print("{:.2E}".format(m))
+                    print("{:.2f}".format(m*100))
+
+
+                    # if m >= 1.5e-2:
+                    #     print("Closed")
+                    # else:
+                    #     print("Open")
 
 
             # Stop data acquisition.
