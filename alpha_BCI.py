@@ -6,9 +6,18 @@ from biosppy import storage
 from biosppy.signals.eeg import eeg
 from biosppy.signals.eeg import get_power_features
 
+import threading
+import tkinter as tk
+import time
+
+import os
+import math
+
 def main():
     # Specifications for the data acquisition.
     #-------------------------------------------------------------------------------------
+    global bci_exited
+
     TestsignaleEnabled = False;
     FrameLength = 1;
     AcquisitionDurationInSeconds = 60;
@@ -77,6 +86,9 @@ def main():
         # Declare new variables for alpha BCI
         analysis_block_window = 1.0
         data_block = np.zeros((int(UnicornPy.SamplingRate * analysis_block_window), 8))
+        alpha_threshold = 2.0
+
+        quantum_angle = 0.0
 
         try:
             # Start data acquisition.
@@ -96,6 +108,10 @@ def main():
             #-------------------------------------------------------------------------------------
             for i in range (0,numberOfGetDataCalls):
                 # Receives the configured number of samples from the Unicorn device and writes it to the acquisition buffer.
+
+                if should_exit:
+                    break
+
                 device.GetData(FrameLength,receiveBuffer,receiveBufferBufferLength)
 
                 # Convert receive buffer to numpy float array 
@@ -139,7 +155,16 @@ def main():
                     # print("alpha power: {:.2E}".format(m))
 
                     # print("{:.2E}".format(m))
-                    print("{:.2f}".format(m*100))
+
+
+                    # print("{:.2f}".format(m*100))
+                    if m * 100 <= alpha_threshold:
+                        quantum_angle = min(quantum_angle + 30.0, 180.0)
+                    else:
+                        quantum_angle = max(quantum_angle - 30.0, 0.0)
+
+                    os.system("cls")
+                    print("Angle: {}{}".format(quantum_angle, u"\u00b0"))
 
 
                     # if m >= 1.5e-2:
@@ -175,7 +200,37 @@ def main():
     except Exception as e:
         print("An unknown error occured. %s" %e)
 
-    input("\n\nPress ENTER key to exit")
+    # input("\n\nPress ENTER key to exit")
+    bci_exited = True
+
+def on_close():
+    global should_exit
+
+    if not should_exit:
+        should_exit = True
+
+    while not bci_exited:
+        time.sleep(1.0)
+        continue
+    top.destroy()   
+
+def select_angle():
+    pass
 
 #execute main
-main()
+should_exit = False
+bci_exited = False
+bci_thread = threading.Thread(target = main)
+bci_thread.start()
+
+
+top = tk.Tk()
+top.title("Quantum BCI")
+top.protocol("WM_DELETE_WINDOW", on_close)
+
+# angle_var = tk.DoubleVar()
+# angle_Value = 0.0
+# angle_scale = tk.Scale(top, variable = angle_var, orient = tk.HORIZONTAL, length = 450, from_ = 0.0, to = 180.0, command = select_angle)
+# angle_scale.pack()
+
+top.mainloop()
