@@ -22,6 +22,7 @@ def main():
     FrameLength = 1;
     AcquisitionDurationInSeconds = 60;
     DataFile = "data.csv";
+    data_file_alpha = "data_alpha.csv"
     
     print("Unicorn Acquisition Example")
     print("---------------------------")
@@ -65,6 +66,8 @@ def main():
 
         # Create a file to store data.
         file = open(DataFile, "wb")
+        file_alpha = open(data_file_alpha, "a")
+
 
         # Initialize acquisition members.
         #-------------------------------------------------------------------------------------
@@ -86,7 +89,7 @@ def main():
         # Declare new variables for alpha BCI
         analysis_block_window = 1.0
         data_block = np.zeros((int(UnicornPy.SamplingRate * analysis_block_window), 8))
-        alpha_threshold = 2.0
+        alpha_threshold = 0.02
 
         quantum_angle = 0.0
 
@@ -94,7 +97,9 @@ def main():
             # Start data acquisition.
             #-------------------------------------------------------------------------------------
             device.StartAcquisition(TestsignaleEnabled)
-            print("Data acquisition started.")
+            os.system("cls")
+
+            print("Data acquisition started.\n")
 
             # Calculate number of get data calls.
             numberOfGetDataCalls = int(AcquisitionDurationInSeconds * UnicornPy.SamplingRate / FrameLength);
@@ -158,13 +163,22 @@ def main():
 
 
                     # print("{:.2f}".format(m*100))
-                    if m * 100 <= alpha_threshold:
+
+                    eye_status = "open"
+                    if m >= alpha_threshold:
                         quantum_angle = min(quantum_angle + 30.0, 180.0)
+                        eye_status = "closed"
                     else:
                         quantum_angle = max(quantum_angle - 30.0, 0.0)
+                        eye_status = "closed"
 
-                    os.system("cls")
-                    print("Angle: {}{}".format(quantum_angle, u"\u00b0"))
+                    # os.system("cls")
+                    # print("Angle: {}{}".format(quantum_angle, u"\u00b0"))
+
+                    data_line = "{:.5f},{}\n".format(m, eye_status)
+                    print(data_line)
+
+                    file_alpha.write(data_line)
 
 
                     # if m >= 1.5e-2:
@@ -189,6 +203,7 @@ def main():
 
             #close file
             file.close()
+            file_alpha.close()
 
             # Close device.
             #-------------------------------------------------------------------------------------
