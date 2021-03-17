@@ -20,7 +20,7 @@ def main():
 
     TestsignaleEnabled = False;
     FrameLength = 1;
-    AcquisitionDurationInSeconds = 60;
+    AcquisitionDurationInSeconds = 120;
     DataFile = "data.csv";
     data_file_alpha = "data_alpha.csv"
     
@@ -170,7 +170,7 @@ def main():
                         eye_status = "closed"
                     else:
                         quantum_angle = max(quantum_angle - 30.0, 0.0)
-                        eye_status = "closed"
+                        eye_status = "open"
 
                     # os.system("cls")
                     # print("Angle: {}{}".format(quantum_angle, u"\u00b0"))
