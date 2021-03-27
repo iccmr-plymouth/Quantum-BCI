@@ -153,14 +153,14 @@ def main():
                     avg_alpha_pow = (a_low_pow + a_high_pow) / 2.0
 
 
-                    mind_status = "unknown"
+                    mind_status = -1
 
                     if avg_alpha_pow > alpha_threshold:
-                        mind_status = "relaxed"
+                        mind_status = 1
                     else:
-                        mind_status = "aroused"
+                        mind_status = 0
 
-                    data_line = "{:.5f}, {}\n".format(avg_alpha_pow, mind_status)
+                    data_line = "{:.5f}, {}, {}\n".format(avg_alpha_pow, mind_status, mind_status_label)
                     print(data_line)
 
                     file_alpha.write(data_line)
@@ -222,7 +222,7 @@ def key_press(event):
         mind_status_label = 0
         print("aroused")
     elif key == '3':
-        mind_status_label = 0
+        mind_status_label = -1
         print("unknown")
 
 #execute main
