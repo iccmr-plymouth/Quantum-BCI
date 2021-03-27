@@ -29,7 +29,6 @@ def main():
     print()
 
     b, a = signal.butter(8, [1/125.0, 30/125.0], 'band')
-    # b2, a2 = signal.butter(8, [1/125.0, 30/125.0], 'band')
     b_notch, a_notch = signal.iirnotch(50.0, 30.0, 250.0)
 
 
@@ -66,7 +65,7 @@ def main():
 
         # Create a file to store data.
         file = open(DataFile, "wb")
-        file_alpha = open(data_file_alpha, "a")
+        file_alpha = open(data_file_alpha, "w")
 
 
         # Initialize acquisition members.
@@ -86,12 +85,10 @@ def main():
         receiveBufferBufferLength = FrameLength * numberOfAcquiredChannels * 4
         receiveBuffer = bytearray(receiveBufferBufferLength)
 
-        # Declare new variables for alpha BCI
-        analysis_block_window = 6.0
+        # Declare variables for alpha BCI. `data_block` stores the most recent data and uses it for analysis.
+        analysis_block_window = 1.0
         data_block = np.zeros((int(UnicornPy.SamplingRate * analysis_block_window), 8))
         alpha_threshold = 0.02
-
-        quantum_angle = 0.0
 
         try:
             # Start data acquisition.
@@ -123,70 +120,42 @@ def main():
                 data = np.frombuffer(receiveBuffer, dtype=np.float32, count=numberOfAcquiredChannels * FrameLength)
                 data = np.reshape(data, (FrameLength, numberOfAcquiredChannels))
 
+                # This deletes the oldest EEG sample and inserts the newest sample. In other words, it acts a FIFO queue.
                 data_block = np.roll(data_block, -1, axis=0)
                 data_block[-1, :] = data[:, 0:8]
 
                 np.savetxt(file,data,delimiter=',',fmt='%.3f',newline='\n')
                 
-                # Update console to indicate that the data acquisition is running.
-                if i % consoleUpdateRate == 0:
-                    #print('.',end='',flush=True)
-                    pass
 
+                # Code for alpha BCI
 
-                # Code alpha BCI
-
-
+                # The below if statement discards the first analysis_block_window and checks if data_block is ready for analysis.
                 if i > int(UnicornPy.SamplingRate * analysis_block_window) and i % int(UnicornPy.SamplingRate * analysis_block_window) == 0:
-                    # y = signal.filtfilt(b, a, data_block, axis = 0)
+                    
+                    # Apply a notch filter to the signal
                     y_notched = signal.filtfilt(b_notch, a_notch, data_block, axis = 0)
-                    # y_notched = data_block
-                    # print("Reached here!!!")
 
-                    # print("data_block: {}".format(data_block))
-                    # ts, theta, alpha_low, alpha_high, beta, gamma = get_power_features(signal=y_notched,
-                    #     sampling_rate=250, size=3.0, overlap=0)
-
+                    # Extract the powers of EEG bands using the 'biosppy.signals.eeg' package
                     ts, filtered, features_ts, theta, alpha_low, alpha_high, beta, gamma, plf_pairs, plf = eeg(signal=y_notched,
                         sampling_rate=UnicornPy.SamplingRate, show=False)
 
-                    # print("alpha_low.shape: {} and alpha_high.shape: {}".format(alpha_low.shape, alpha_high.shape))
-                    # print("alpha_low: {} \t alpha_high: {}".format(alpha_low[-1], alpha_high[-1]))
-                    a_low_pow = np.mean(alpha_low[:, :8])
-                    a_high_pow = np.mean(alpha_high[:, :8])
-                    m = (a_low_pow + a_high_pow) / 2.0
-
-                    beta_pow = np.mean(beta[:, :8])
-                    # print("alpha_low.shape: {}".format(alpha_low[:, -1].shape))
-                    # print("alpha_low: {} and alpha_high: {}".format(np.mean(alpha_low[:, -1]), np.mean(alpha_high[:, -1])))
-                    # print("alpha power: {:.2E}".format(m))
-
-                    # print("{:.2E}".format(m))
+                    a_low_pow = np.mean(alpha_low[:, :1])
+                    a_high_pow = np.mean(alpha_high[:, :1])
+                    avg_alpha_pow = (a_low_pow + a_high_pow) / 2.0
 
 
-                    # print("{:.2f}".format(m*100))
+                    mind_status = "unknown"
 
-                    mind_status = "relaxed"
-                    if m > beta_pow + 0.005:
-                        quantum_angle = min(quantum_angle + 30.0, 180.0)
+                    if avg_alpha_pow > alpha_threshold:
                         mind_status = "relaxed"
                     else:
-                        quantum_angle = max(quantum_angle - 30.0, 0.0)
                         mind_status = "aroused"
 
-                    # os.system("cls")
-                    # print("Angle: {}{}".format(quantum_angle, u"\u00b0"))
-
-                    data_line = "{:.5f}, {:.5f}, {}\n".format(m, beta_pow, mind_status)
+                    data_line = "{:.5f}, {}\n".format(avg_alpha_pow, mind_status)
                     print(data_line)
 
                     file_alpha.write(data_line)
 
-
-                    # if m >= 1.5e-2:
-                    #     print("Closed")
-                    # else:
-                    #     print("Open")
 
 
             # Stop data acquisition.
