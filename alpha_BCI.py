@@ -20,7 +20,7 @@ def main():
 
     TestsignaleEnabled = False;
     FrameLength = 1;
-    AcquisitionDurationInSeconds = 120;
+    AcquisitionDurationInSeconds = 300;
     DataFile = "data.csv";
     data_file_alpha = "data_alpha.csv"
     
@@ -87,7 +87,7 @@ def main():
         receiveBuffer = bytearray(receiveBufferBufferLength)
 
         # Declare new variables for alpha BCI
-        analysis_block_window = 1.0
+        analysis_block_window = 6.0
         data_block = np.zeros((int(UnicornPy.SamplingRate * analysis_block_window), 8))
         alpha_threshold = 0.02
 
@@ -137,7 +137,7 @@ def main():
                 # Code alpha BCI
 
 
-                if i > int(UnicornPy.SamplingRate * analysis_block_window) and i % int(UnicornPy.SamplingRate * 1.0) == 0:
+                if i > int(UnicornPy.SamplingRate * analysis_block_window) and i % int(UnicornPy.SamplingRate * analysis_block_window) == 0:
                     # y = signal.filtfilt(b, a, data_block, axis = 0)
                     y_notched = signal.filtfilt(b_notch, a_notch, data_block, axis = 0)
                     # y_notched = data_block
@@ -152,9 +152,11 @@ def main():
 
                     # print("alpha_low.shape: {} and alpha_high.shape: {}".format(alpha_low.shape, alpha_high.shape))
                     # print("alpha_low: {} \t alpha_high: {}".format(alpha_low[-1], alpha_high[-1]))
-                    a_low_pow = np.mean(alpha_low[:, :1])
-                    a_high_pow = np.mean(alpha_high[:, :1])
+                    a_low_pow = np.mean(alpha_low[:, :8])
+                    a_high_pow = np.mean(alpha_high[:, :8])
                     m = (a_low_pow + a_high_pow) / 2.0
+
+                    beta_pow = np.mean(beta[:, :8])
                     # print("alpha_low.shape: {}".format(alpha_low[:, -1].shape))
                     # print("alpha_low: {} and alpha_high: {}".format(np.mean(alpha_low[:, -1]), np.mean(alpha_high[:, -1])))
                     # print("alpha power: {:.2E}".format(m))
@@ -164,18 +166,18 @@ def main():
 
                     # print("{:.2f}".format(m*100))
 
-                    eye_status = "open"
-                    if m >= alpha_threshold:
+                    mind_status = "relaxed"
+                    if m > beta_pow + 0.005:
                         quantum_angle = min(quantum_angle + 30.0, 180.0)
-                        eye_status = "closed"
+                        mind_status = "relaxed"
                     else:
                         quantum_angle = max(quantum_angle - 30.0, 0.0)
-                        eye_status = "open"
+                        mind_status = "aroused"
 
                     # os.system("cls")
                     # print("Angle: {}{}".format(quantum_angle, u"\u00b0"))
 
-                    data_line = "{:.5f},{}\n".format(m, eye_status)
+                    data_line = "{:.5f}, {:.5f}, {}\n".format(m, beta_pow, mind_status)
                     print(data_line)
 
                     file_alpha.write(data_line)
