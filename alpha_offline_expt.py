@@ -12,6 +12,7 @@ import time
 
 import os
 import math
+import sys
 
 def main():
     # Specifications for the data acquisition.
@@ -20,10 +21,26 @@ def main():
 
     TestsignaleEnabled = False;
     FrameLength = 1;
-    AcquisitionDurationInSeconds = 300;
-    DataFile = "data.csv";
-    data_file_alpha = "data_alpha.csv"
+    AcquisitionDurationInSeconds = 300; # This is the maximum duration of the experiment
+
+    print(sys.argv)
+    expt_path = ""
+
+    if len(sys.argv) > 1:
+        expt_path = sys.argv[1]
+
+    try: 
+        os.mkdir(expt_path) 
+    except OSError as error: 
+        print(error)
+        print("Looks like the experiment folder already exists!!! ")
+        expt_path = ""
+        print("Writing into parent directory instead")
+
+    DataFile = os.path.join(expt_path, "data.csv")
+    data_file_alpha = os.path.join(expt_path, "data_alpha.csv")
     
+
     print("Unicorn Acquisition Example")
     print("---------------------------")
     print()
