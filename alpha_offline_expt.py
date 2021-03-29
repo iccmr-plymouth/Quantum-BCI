@@ -153,7 +153,7 @@ def main():
                 np.savetxt(file,data_2,delimiter=',',fmt='%.3f',newline='\n')
                 
 
-                # Code for alpha BCI
+                # Code for alpha BCI and data preprocessing.
 
                 # The below if statement discards the first analysis_block_window and checks if data_block is ready for analysis.
                 if i > int(UnicornPy.SamplingRate * analysis_block_window) and i % int(UnicornPy.SamplingRate * analysis_block_window) == 0:
