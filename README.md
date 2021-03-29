@@ -10,4 +10,15 @@ To start the experiment, I wear the EEG headset and run the 'alpha_offline_expt.
 There are 9 columns: 8 EEG channels + 1 label. The label is the ground truth that specifies the mental state. '1' is for relaxed state (or eyes closed) and '0' is for aroused state (or eyes open). '-1' is for unknown state. The unknown state useful is useful for the beginning and end of each trial because I am either getting ready or just about to end the experiment. You can discard these values when training the machine learning model.
 
 ## data_alpha.csv
-This file might not be of relevance to train your machine learning model. In this file, I am processing the EEG data to calculate an output based on the power of alpha waves (every 1 second). I have only calculated a threshold-based output, considering the first EEG channel.
+The first column contains the alpha power, the second column contains the threshold-based output, the third column contains the ground truth. This file might not be of relevance to train your machine learning model. In this file, I am processing the EEG data to calculate an output based on the power of alpha waves (every 1 second). I have only calculated a threshold-based output, considering the first EEG channel.
+ 
+ 
+ 
+# Types of experiments
+Please check the experiments folder. You will find two types of experiments --- (1) Open / Closed (OC) (2) Aroused / Relaxed (RA).
+
+## Open / Closed (OC)
+As mentioned above, data.csv contains the raw EEG + ground truth labels. Here, I am opening and closing my eyes to alter my mental state. In data_alpha.csv, you will see that the calculated output matches the ground truth to a good extent.
+
+## Aroused / Relaxed (AR)
+Here, I do not focus on opening or closing my eyes. I am directly altering my mental state by becoming more active or relaxing. As you can see in data_alpha.csv, our threshold-based outputs are not great. Perhaps, machine learning might improve the performance of the system.
