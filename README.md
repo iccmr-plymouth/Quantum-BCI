@@ -15,7 +15,7 @@ The first column contains the alpha power, the second column contains the thresh
  
  
 # Types of experiments
-Please check the [experiments](https://github.com/satvik-venkatesh/Quantum-BCI/tree/main/experiments) folder. You will find two types of experiments --- (1) Open / Closed (OC) (2) Aroused / Relaxed (RA).
+Please check the [experiments](https://github.com/satvik-venkatesh/Quantum-BCI/tree/main/experiments) folder. You will find two types of experiments --- (1) Open / Closed (OC) (2) Aroused / Relaxed (AR).
 
 ## Open / Closed (OC)
 As mentioned above, data.csv contains the raw EEG + ground truth labels. Here, I am opening and closing my eyes to alter my mental state. In data_alpha.csv, you will see that the calculated output matches the ground truth to a good extent.
