@@ -17,8 +17,8 @@ The first column contains the alpha power, the second column contains the thresh
 # Types of experiments
 Please check the experiments folder. You will find two types of experiments --- (1) Open / Closed (OC) (2) Aroused / Relaxed (RA).
 
-# Open / Closed (OC)
+## Open / Closed (OC)
 As mentioned above, data.csv contains the raw EEG + ground truth labels. Here, I am opening and closing my eyes to alter my mental state. In data_alpha.csv, you will see that the calculated output matches the ground truth to a good extent.
 
-# Aroused / Relaxed (AR)
+## Aroused / Relaxed (AR)
 Here, I do not focus on opening or closing my eyes. I am directly altering my mental state by becoming more active or relaxing. As you can see in data_alpha.csv, our threshold-based outputs are not great. Perhaps, machine learning might improve the performance of the system.
