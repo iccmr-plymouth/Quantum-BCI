@@ -2,7 +2,7 @@
 Controlling a quantum computer with a BCI
 
 # Offline Experimental set-up
-To start the experiment, I wear the EEG headset and run the 'alpha_offline_expt.py' file. The ground truth is initially set to -1 as I am not ready yet. Once I am ready, I press a key on my keyboard that sets the ground truth label. When I go to a relaxed state (or close my eyes), the ground truth is set to 1. When I go to an aroused state (or open my eyes), the ground truth is set to 0. I press a different key on the keyboard to choose between different mental states. Just before I end the experiment, I set the ground truth back to -1.
+To start the experiment, I wear the EEG headset and run the [alpha_offline_expt.py](https://github.com/satvik-venkatesh/Quantum-BCI/blob/main/alpha_offline_expt.py) file. The ground truth is initially set to -1 as I am not ready yet. Once I am ready, I press a key on my keyboard that sets the ground truth label. When I go to a relaxed state (or close my eyes), the ground truth is set to 1. When I go to an aroused state (or open my eyes), the ground truth is set to 0. I press a different key on the keyboard to choose between different mental states. Just before I end the experiment, I set the ground truth back to -1.
 
 
 # Format of csv files
@@ -15,7 +15,7 @@ The first column contains the alpha power, the second column contains the thresh
  
  
 # Types of experiments
-Please check the experiments folder. You will find two types of experiments --- (1) Open / Closed (OC) (2) Aroused / Relaxed (RA).
+Please check the [experiments](https://github.com/satvik-venkatesh/Quantum-BCI/tree/main/experiments) folder. You will find two types of experiments --- (1) Open / Closed (OC) (2) Aroused / Relaxed (RA).
 
 ## Open / Closed (OC)
 As mentioned above, data.csv contains the raw EEG + ground truth labels. Here, I am opening and closing my eyes to alter my mental state. In data_alpha.csv, you will see that the calculated output matches the ground truth to a good extent.
