@@ -67,7 +67,8 @@ for i in range(0, my_data.shape[0]):
         
         
         features = np.stack((alpha_low, alpha_high, beta, theta), axis=0)
-
+        
+        data_trials.append((features, mind_status_label))
         
 with open("processed_EEG.pickle", 'wb') as f:
   pickle.dump(data_trials, f, pickle.HIGHEST_PROTOCOL)
