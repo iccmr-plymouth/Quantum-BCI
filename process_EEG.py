@@ -68,25 +68,6 @@ for i in range(0, my_data.shape[0]):
         
         features = np.stack((alpha_low, alpha_high, beta, theta), axis=0)
 
-        print("features.shape is {}".format(features.shape))
-
-        a_low_pow = np.mean(alpha_low[:, :], )
-        a_high_pow = np.mean(alpha_high[:, :])
-        avg_alpha_pow = (a_low_pow + a_high_pow) / 2.0
-
-
-        mind_status = -1
-
-        if avg_alpha_pow > alpha_threshold:
-            mind_status = 1
-        else:
-            mind_status = 0
-
-        data_line = "{:.5f}, {}, {}\n".format(avg_alpha_pow, mind_status, mind_status_label)
-
-        file_alpha.write(data_line)
-        
-        data_trials.append((features, mind_status_label))
         
 with open("processed_EEG.pickle", 'wb') as f:
   pickle.dump(data_trials, f, pickle.HIGHEST_PROTOCOL)
