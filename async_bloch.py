@@ -2,6 +2,7 @@ import time
 import pygame
 import numpy as np
 import pandas as pd
+import qiskit
 from qiskit.visualization import plot_bloch_vector
 from qiskit.visualization.bloch import Bloch
 from qiskit import QuantumCircuit
@@ -39,10 +40,17 @@ class Qubit:
         assert (self.phi >= 0) and (self.phi <= 2*np.pi), 'phi must be in range [0, 2pi]'
         assert (self.theta >= 0) and (self.theta <= np.pi), 'theta must be in range [0, pi]'
     
+    def __eq__(self, target_state):
+        # checks if a qubit is equal or close enough to another
+        qubit_original = self.to_qiskit()
+        qubit_target = target_state.to_qiskit()
+        fidelity = qiskit.quantum_info.state_fidelity(qubit_original, qubit_target)
+        return fidelity > 0.9
+
     def to_qiskit(self):
-        qc = QuantumCircuit(1)  # Create a quantum circuit with one qubit
+        #qc = QuantumCircuit(1)  # Create a quantum circuit with one qubit
         initial_state = [np.cos(0.5*self.theta),np.exp(1j*self.phi)*np.sin(0.5*self.theta)]   # Define initial_state as |1>
-        return qc.initialize(initial_state, 0)
+        return qiskit.quantum_info.Statevector(initial_state)#qc.initialize(initial_state, 0)
     
     def control(self, dphi=1e-4, dtheta=1e-4):
         self.phi += dphi*np.pi
@@ -299,6 +307,8 @@ def main(qubit, realtime=True, model=None, data=None):
 
 if __name__ == '__main__':
     qubit = Qubit(phi=0.5*np.pi, theta=0.5*np.pi)# default values 0, 0
-    main(qubit, realtime=True, model="mod_knn_oc.joblib",data='./reports/df_oc.csv')
+    qubit2 = Qubit(phi=0.499*np.pi, theta=0.495*np.pi)
+    print(qubit==qubit2)
+    #main(qubit, realtime=True, model="mod_knn_oc.joblib",data='./reports/df_oc.csv')
 
     
