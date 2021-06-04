@@ -20,7 +20,13 @@ import threading
 from biosppy.signals.eeg import eeg
 from biosppy.signals.eeg import get_power_features
 
-import tkinter as tk
+import tkinter
+
+from matplotlib.backends.backend_tkagg import (
+    FigureCanvasTkAgg, NavigationToolbar2Tk)
+
+from matplotlib.backend_bases import key_press_handler
+from matplotlib.figure import Figure
 
 # Define some colors
 BLACK = (0, 0, 0)
@@ -360,24 +366,46 @@ def on_close():
         continue
     
     print("Going to destroy!!")
-    top.quit()
-    top.destroy()   
+    # top.quit()
+    # top.destroy()   
 
 qubit = Qubit(phi=0, theta=0.5*np.pi)# default values 0, 0
 
 
-b_thread = threading.Thread(target = bci_thread)
-b_thread.start()
-q_thread = threading.Thread(target = qubit_thread)
-q_thread.start()
+root = tkinter.Tk()
+root.wm_title("Embedding in Tk")
 
-top = tk.Tk()
-top.title("Quantum BCI")
-top.protocol("WM_DELETE_WINDOW", on_close)
+fig = Figure(figsize=(5, 4), dpi=100)
+t = np.arange(0, 3, .01)
+fig.add_subplot(111).plot(t, 2 * np.sin(2 * np.pi * t))
 
-# angle_var = tk.DoubleVar()
-# angle_Value = 0.0
-# angle_scale = tk.Scale(top, variable = angle_var, orient = tk.HORIZONTAL, length = 450, from_ = 0.0, to = 180.0, command = select_angle)
-# angle_scale.pack()
+canvas = FigureCanvasTkAgg(fig, master=root)  # A tk.DrawingArea.
+canvas.draw()
+canvas.get_tk_widget().pack(side=tkinter.TOP, fill=tkinter.BOTH, expand=1)
 
-top.mainloop()
+toolbar = NavigationToolbar2Tk(canvas, root)
+toolbar.update()
+canvas.get_tk_widget().pack(side=tkinter.TOP, fill=tkinter.BOTH, expand=1)
+
+
+def on_key_press(event):
+    print("you pressed {}".format(event.key))
+    key_press_handler(event, canvas, toolbar)
+
+
+canvas.mpl_connect("key_press_event", on_key_press)
+
+
+def _quit():
+    root.quit()     # stops mainloop
+    root.destroy()  # this is necessary on Windows to prevent
+                    # Fatal Python Error: PyEval_RestoreThread: NULL tstate
+
+
+button = tkinter.Button(master=root, text="Quit", command=_quit)
+button.pack(side=tkinter.BOTTOM)
+
+tkinter.mainloop()
+# If you put root.destroy() here, it will cause an error if the window is
+# closed with the window manager.
+
