@@ -20,7 +20,8 @@ import threading
 from biosppy.signals.eeg import eeg
 from biosppy.signals.eeg import get_power_features
 
-import tkinter
+import tkinter as Tk
+import matplotlib.animation as animation
 
 from matplotlib.backends.backend_tkagg import (
     FigureCanvasTkAgg, NavigationToolbar2Tk)
@@ -377,47 +378,47 @@ def on_key_press(event):
 
 
 
-
 def _quit():
     root.quit()     # stops mainloop
     root.destroy()  # this is necessary on Windows to prevent
                     # Fatal Python Error: PyEval_RestoreThread: NULL tstate
 
 
-root = tkinter.Tk()
-root.wm_title("Embedding in Tk")
+fig = plt.Figure()
 
-fig = Figure(figsize=(5, 4), dpi=100)
-# t = np.arange(0, 3, .01)
-# fig.add_subplot(111).plot(t, 2 * np.sin(2 * np.pi * t))
+x = np.arange(0, 2*np.pi, 0.01)        # x-array
 
+def animate(i):
+    qubit.control(dphi=+1e-2*np.pi, dtheta=0)
+    r, theta, phi = 1, qubit.theta, qubit.phi
+    bloch[0] = r*np.sin(theta)*np.cos(phi)
+    bloch[1] = r*np.sin(theta)*np.sin(phi)
+    bloch[2] = r*np.cos(theta)
+    B.add_vectors(bloch)
+    
+    B.render(title='1-qubit Bloch Sphere')
+    # plt.draw()
+    B.clear()
+    # fig.clear()
+
+root = Tk.Tk()
+
+label = Tk.Label(root,text="Qubit Rotation").grid(column=0, row=0)
+
+canvas = FigureCanvasTkAgg(fig, master=root)
+canvas.get_tk_widget().grid(column=0,row=1)
+
+# ax = fig.add_subplot(111)
 B = Bloch(fig)
 bloch = [0,0,0]
+r, theta, phi = 1, qubit.theta, qubit.phi
+bloch[0] = r*np.sin(theta)*np.cos(phi)
+bloch[1] = r*np.sin(theta)*np.sin(phi)
+bloch[2] = r*np.cos(theta)
 B.add_vectors(bloch)
 B.render(title='1-qubit Bloch Sphere')
-plt.pause(0.1)
-plt.draw()
-B.clear()
-fig.clear()
 
+# line, = ax.plot(x, np.sin(x))
+ani = animation.FuncAnimation(fig, animate, np.arange(1, 200), interval=25, blit=False)
 
-
-canvas = FigureCanvasTkAgg(fig, master=root)  # A tk.DrawingArea.
-canvas.draw()
-canvas.get_tk_widget().pack(side=tkinter.TOP, fill=tkinter.BOTH, expand=1)
-
-toolbar = NavigationToolbar2Tk(canvas, root)
-toolbar.update()
-canvas.get_tk_widget().pack(side=tkinter.TOP, fill=tkinter.BOTH, expand=1)
-
-
-canvas.mpl_connect("key_press_event", on_key_press)
-
-
-button = tkinter.Button(master=root, text="Quit", command=_quit)
-button.pack(side=tkinter.BOTTOM)
-
-tkinter.mainloop()
-# If you put root.destroy() here, it will cause an error if the window is
-# closed with the window manager.
-
+Tk.mainloop()
