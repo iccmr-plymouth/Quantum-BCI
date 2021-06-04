@@ -20,7 +20,7 @@ import threading
 from biosppy.signals.eeg import eeg
 from biosppy.signals.eeg import get_power_features
 
-
+import tkinter as tk
 
 # Define some colors
 BLACK = (0, 0, 0)
@@ -31,10 +31,14 @@ WHITE = (255, 255, 255)
 should_exit = False
 pending_bci_update = False
 mind_status = "unknown"
+bci_exited = False
+q_exited = False
+
 
 def bci_thread():
     global pending_bci_update
     global mind_status
+    global qubit
 
     """
     This function is a thread
@@ -45,7 +49,7 @@ def bci_thread():
 
     TestsignaleEnabled = False;
     FrameLength = 1;
-    AcquisitionDurationInSeconds = 300;
+    AcquisitionDurationInSeconds = 20;
     DataFile = "data.csv";
     data_file_alpha = "data_alpha.csv"
     
@@ -168,15 +172,16 @@ def bci_thread():
                     a_high_pow = np.mean(alpha_high[:, :1])
                     avg_alpha_pow = (a_low_pow + a_high_pow) / 2.0
 
-
                     
                     # while pending_bci_update:
                     #     time.sleep(0.01)
 
                     if avg_alpha_pow > alpha_threshold:
                         mind_status = "relaxed"
+                        qubit.control(dphi=+1e-2*np.pi, dtheta=0)
                     else:
                         mind_status = "aroused"
+                        qubit.control(dphi=-1e-2*np.pi, dtheta=0)
 
                     pending_bci_update = True
 
@@ -297,10 +302,13 @@ class TextPrint(object):
         self.x_pos -= 10
 
 
-def main(qubit, realtime=True, model=None, data=None):
+
+
+def run_qubit(qubit, realtime=True, model=None, data=None):
     global should_exit
     global pending_bci_update
     global mind_status
+    global q_exited
     
     if model is not None:
         mod = load(model)
@@ -308,159 +316,68 @@ def main(qubit, realtime=True, model=None, data=None):
     if data is not None:
         X, y, df = get_df(data) #'oc2.csv'
         preds = mod.predict(X)
-    pygame.init()
-    # Set the width and height of the screen [width,height]
-    size = [700, 300]
-    screen = pygame.display.set_mode(size)
-    
-    pygame.display.set_caption("CLICK IN THE WHITE AREA to control 1-qubit Bloch Sphere")
     
     # Loop until the user clicks the close button.
     done = False
     
-    # Used to manage how fast the screen updates
-    clock = pygame.time.Clock()
-    
+    # Used to manage how fast the screen updates    
     fig = plt.figure()
     B = Bloch(fig)
     bloch = [0,0,0]
 
-    # Get ready to print
-    textPrint = TextPrint()
 
     # -------- Main Program Loop -----------
-    if realtime:
-        while not done: # real time
-            # EVENT PROCESSING STEP
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    done = True
-                    should_exit = True
+    while not should_exit: # real time
+        # EVENT PROCESSING STEP
 
-            screen.fill(WHITE)
-            textPrint.reset()
-
-            r, theta, phi = 1, qubit.theta, qubit.phi
-            bloch[0] = r*np.sin(theta)*np.cos(phi)
-            bloch[1] = r*np.sin(theta)*np.sin(phi)
-            bloch[2] = r*np.cos(theta)
-            B.add_vectors(bloch)
-            B.render(title='1-qubit Bloch Sphere')
-            plt.pause(0.01)
-            plt.draw()
-            B.clear()
-            fig.clear()
-            
-            if pending_bci_update:
-                # mind_status can either be 'relaxed' or 'aroused'
-                if mind_status == "relaxed":
-                    qubit.control(dphi=+1e-2*np.pi, dtheta=0)
-                
-                elif mind_status == "aroused":
-                    qubit.control(dphi=-1e-2*np.pi, dtheta=0)
-                    
-                # pending_bci_update = False
-                # mind_status = "unknown"
-                
-            # if pygame.key.get_pressed()[pygame.K_LEFT] == True:
-            #     qubit.control(dphi=-1e-3*np.pi, dtheta=0)
-            #     print(f'key left pressed, phi: {qubit.phi:.3f}')
-            # if pygame.key.get_pressed()[pygame.K_RIGHT] == True:
-            #     qubit.control(dphi=+1e-3*np.pi, dtheta=0)
-            #     print(f'key right pressed, phi: {qubit.phi:.3f}')  
-            # if pygame.key.get_pressed()[pygame.K_UP] == True:
-            #     qubit.control(dphi=0, dtheta=+1e-3*np.pi)
-            #     print(f'key up pressed, theta: {qubit.theta:.3f}')
-            # if pygame.key.get_pressed()[pygame.K_DOWN] == True:
-            #     qubit.control(dphi=0, dtheta=-1e-3*np.pi)
-            #     print(f'key down pressed, theta: {qubit.theta:.3f}')
-            
-            # textPrint.print(screen, "phi: {:.3f}".format(qubit.phi))
-            # textPrint.print(screen, "theta: {:.3f}".format(qubit.theta))
-            # textPrint.print(screen, "r: {:.3f}".format(r))
-            # textPrint.print(screen, "x: {:.3f}".format(bloch[0]))
-            # textPrint.print(screen, "y: {:.3f}".format(bloch[1]))
-            # textPrint.print(screen, "z: {:.3f}".format(bloch[2]))
-            
-            #xvar, yvar = joystick.get_axis(3), joystick.get_axis(1)
-            #pygame.draw.circle(screen, color=BLACK, center=(round(250+xvar*200), round(350+yvar*200)), radius=5)
-
-            # ALL CODE TO DRAW SHOULD GO ABOVE THIS COMMENT
+        r, theta, phi = 1, qubit.theta, qubit.phi
+        bloch[0] = r*np.sin(theta)*np.cos(phi)
+        bloch[1] = r*np.sin(theta)*np.sin(phi)
+        bloch[2] = r*np.cos(theta)
+        B.add_vectors(bloch)
+        B.render(title='1-qubit Bloch Sphere')
+        plt.pause(0.1)
+        plt.draw()
+        B.clear()
+        fig.clear()
         
-            # Go ahead and update the screen with what we've drawn.
-            pygame.display.flip()
-        
-            # Limit to 60 frames per second, should change later with sample rate
-            clock.tick(10)
-    else:
-        i=0
-        imax = 100
-        while i < imax and not done:
-            # EVENT PROCESSING STEP
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    done = True
+    q_exited = True
 
-            screen.fill(WHITE)
-            textPrint.reset()
+def qubit_thread():
+    """
+    This function is a thread
+    """
+    run_qubit(qubit, realtime=True)
 
-            r, theta, phi = 1, qubit.theta, qubit.phi
-            bloch[0] = r*np.sin(theta)*np.cos(phi)
-            bloch[1] = r*np.sin(theta)*np.sin(phi)
-            bloch[2] = r*np.cos(theta)
-            B.add_vectors(bloch)
-            B.render(title='1-qubit Bloch Sphere')
-            plt.pause(0.01)
-            plt.draw()
-            B.clear()
-            fig.clear()
+def on_close():
+    global should_exit
 
-            # if pygame.key.get_pressed()[pygame.K_LEFT] == True:
-            #     qubit.control(dphi=-1e-3*np.pi, dtheta=0)
-            #     print(f'key left pressed, phi: {qubit.phi:.3f}')
-            # if pygame.key.get_pressed()[pygame.K_RIGHT] == True:
-            #     qubit.control(dphi=+1e-3*np.pi, dtheta=0)
-            #     print(f'key right pressed, phi: {qubit.phi:.3f}')
-            if preds[i] == 0:
-                qubit.control(dphi=-1e-3*np.pi, dtheta=0)
-            if preds[i] == 1:
-                qubit.control(dphi=+1e-3*np.pi, dtheta=0)
-            if pygame.key.get_pressed()[pygame.K_UP] == True:
-                qubit.control(dphi=0, dtheta=+1e-3*np.pi)
-                print(f'key up pressed, theta: {qubit.theta:.3f}')
-            if pygame.key.get_pressed()[pygame.K_DOWN] == True:
-                qubit.control(dphi=0, dtheta=-1e-3*np.pi)
-                print(f'key down pressed, theta: {qubit.theta:.3f}')
-                
-            textPrint.print(screen, "phi: {:.3f}".format(qubit.phi))
-            textPrint.print(screen, "theta: {:.3f}".format(qubit.theta))
-            textPrint.print(screen, "r: {:.3f}".format(r))
-            textPrint.print(screen, "x: {:.3f}".format(bloch[0]))
-            textPrint.print(screen, "y: {:.3f}".format(bloch[1]))
-            textPrint.print(screen, "z: {:.3f}".format(bloch[2]))
-                
-                #xvar, yvar = joystick.get_axis(3), joystick.get_axis(1)
-                #pygame.draw.circle(screen, color=BLACK, center=(round(250+xvar*200), round(350+yvar*200)), radius=5)
+    if not should_exit:
+        should_exit = True
 
-                # ALL CODE TO DRAW SHOULD GO ABOVE THIS COMMENT
-            
-                # Go ahead and update the screen with what we've drawn.
-            pygame.display.flip()
-            
-                # Limit to 60 frames per second
-            clock.tick(20)
-            i = i+1
-            # Close the window and quit.
-            # If you forget this line, the program will 'hang'
-            # on exit if running from IDLE.
-    pygame.quit()
-
-
-if __name__ == '__main__':
-    qubit = Qubit(phi=0, theta=0.5*np.pi)# default values 0, 0
-    b_thread = threading.Thread(target = bci_thread)
-    b_thread.start()
-    main(qubit, realtime=True)
-
-
+    while not bci_exited or not q_exited:
+        time.sleep(1.0)
+        continue
     
+    print("Going to destroy!!")
+    top.quit()
+    top.destroy()   
+
+qubit = Qubit(phi=0, theta=0.5*np.pi)# default values 0, 0
+
+
+b_thread = threading.Thread(target = bci_thread)
+b_thread.start()
+q_thread = threading.Thread(target = qubit_thread)
+q_thread.start()
+
+top = tk.Tk()
+top.title("Quantum BCI")
+top.protocol("WM_DELETE_WINDOW", on_close)
+
+# angle_var = tk.DoubleVar()
+# angle_Value = 0.0
+# angle_scale = tk.Scale(top, variable = angle_var, orient = tk.HORIZONTAL, length = 450, from_ = 0.0, to = 180.0, command = select_angle)
+# angle_scale.pack()
+
+top.mainloop()
