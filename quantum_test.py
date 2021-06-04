@@ -371,13 +371,32 @@ def on_close():
 
 qubit = Qubit(phi=0, theta=0.5*np.pi)# default values 0, 0
 
+def on_key_press(event):
+    print("you pressed {}".format(event.key))
+    key_press_handler(event, canvas, toolbar)
+
+
+
+
+def _quit():
+    root.quit()     # stops mainloop
+    root.destroy()  # this is necessary on Windows to prevent
+                    # Fatal Python Error: PyEval_RestoreThread: NULL tstate
+
 
 root = tkinter.Tk()
 root.wm_title("Embedding in Tk")
 
 fig = Figure(figsize=(5, 4), dpi=100)
-t = np.arange(0, 3, .01)
-fig.add_subplot(111).plot(t, 2 * np.sin(2 * np.pi * t))
+# t = np.arange(0, 3, .01)
+# fig.add_subplot(111).plot(t, 2 * np.sin(2 * np.pi * t))
+
+B = Bloch(fig)
+bloch = [0,0,0]
+B.add_vectors(bloch)
+B.render(title='1-qubit Bloch Sphere')
+
+
 
 canvas = FigureCanvasTkAgg(fig, master=root)  # A tk.DrawingArea.
 canvas.draw()
@@ -388,18 +407,7 @@ toolbar.update()
 canvas.get_tk_widget().pack(side=tkinter.TOP, fill=tkinter.BOTH, expand=1)
 
 
-def on_key_press(event):
-    print("you pressed {}".format(event.key))
-    key_press_handler(event, canvas, toolbar)
-
-
 canvas.mpl_connect("key_press_event", on_key_press)
-
-
-def _quit():
-    root.quit()     # stops mainloop
-    root.destroy()  # this is necessary on Windows to prevent
-                    # Fatal Python Error: PyEval_RestoreThread: NULL tstate
 
 
 button = tkinter.Button(master=root, text="Quit", command=_quit)
