@@ -395,6 +395,10 @@ B = Bloch(fig)
 bloch = [0,0,0]
 B.add_vectors(bloch)
 B.render(title='1-qubit Bloch Sphere')
+plt.pause(0.1)
+plt.draw()
+B.clear()
+fig.clear()
 
 
 
