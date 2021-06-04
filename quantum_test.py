@@ -56,7 +56,7 @@ def bci_thread():
 
     TestsignaleEnabled = False;
     FrameLength = 1;
-    AcquisitionDurationInSeconds = 20;
+    AcquisitionDurationInSeconds = 300;
     DataFile = "data.csv";
     data_file_alpha = "data_alpha.csv"
     
@@ -87,7 +87,7 @@ def bci_thread():
 
         # Request device selection.
         print()
-        deviceID = int(input("Select device by ID #"))
+        deviceID = int(0)
         if deviceID < 0 or deviceID > len(deviceList):
             raise IndexError('The selected device ID is not valid.')
 
@@ -193,7 +193,7 @@ def bci_thread():
                     pending_bci_update = True
 
                     data_line = "{:.5f}, {}\n".format(avg_alpha_pow, mind_status)
-                    print(data_line)
+                    # print(data_line)
 
                     file_alpha.write(data_line)
 
@@ -362,20 +362,19 @@ def on_close():
     if not should_exit:
         should_exit = True
 
-    while not bci_exited or not q_exited:
+    while not bci_exited:
         time.sleep(1.0)
         continue
     
     print("Going to destroy!!")
-    # top.quit()
-    # top.destroy()   
+    root.quit()
+    root.destroy()   
 
 qubit = Qubit(phi=0, theta=0.5*np.pi)# default values 0, 0
 
 def on_key_press(event):
     print("you pressed {}".format(event.key))
     key_press_handler(event, canvas, toolbar)
-
 
 
 def _quit():
@@ -389,19 +388,26 @@ fig = plt.Figure()
 x = np.arange(0, 2*np.pi, 0.01)        # x-array
 
 def animate(i):
-    qubit.control(dphi=+1e-2*np.pi, dtheta=0)
+    # qubit.control(dphi=+1e-2*np.pi, dtheta=0)
+    B.clear()
     r, theta, phi = 1, qubit.theta, qubit.phi
     bloch[0] = r*np.sin(theta)*np.cos(phi)
     bloch[1] = r*np.sin(theta)*np.sin(phi)
     bloch[2] = r*np.cos(theta)
     B.add_vectors(bloch)
     
-    B.render(title='1-qubit Bloch Sphere')
+    B.render()
     # plt.draw()
-    B.clear()
     # fig.clear()
 
+
+b_thread = threading.Thread(target=bci_thread)
+b_thread.start()
+
 root = Tk.Tk()
+
+root.protocol("WM_DELETE_WINDOW", on_close)
+
 
 label = Tk.Label(root,text="Qubit Rotation").grid(column=0, row=0)
 
@@ -415,10 +421,10 @@ r, theta, phi = 1, qubit.theta, qubit.phi
 bloch[0] = r*np.sin(theta)*np.cos(phi)
 bloch[1] = r*np.sin(theta)*np.sin(phi)
 bloch[2] = r*np.cos(theta)
-B.add_vectors(bloch)
-B.render(title='1-qubit Bloch Sphere')
+# B.add_vectors(bloch)
+# B.render(title='1-qubit Bloch Sphere')
 
 # line, = ax.plot(x, np.sin(x))
-ani = animation.FuncAnimation(fig, animate, np.arange(1, 200), interval=25, blit=False)
+ani = animation.FuncAnimation(fig, animate, interval=200, blit=False, cache_frame_data=False, repeat=False)
 
 Tk.mainloop()
