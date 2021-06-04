@@ -100,9 +100,6 @@ def bci_thread():
         print()
 
         # Create a file to store data.
-        file = open(DataFile, "wb")
-        file_alpha = open(data_file_alpha, "w")
-
 
         # Initialize acquisition members.
         #-------------------------------------------------------------------------------------
@@ -149,7 +146,9 @@ def bci_thread():
 
                 if should_exit:
                     break
-
+                
+                # time.sleep(0.00001)
+                
                 device.GetData(FrameLength,receiveBuffer,receiveBufferBufferLength)
 
                 # Convert receive buffer to numpy float array 
@@ -159,8 +158,6 @@ def bci_thread():
                 # This deletes the oldest EEG sample and inserts the newest sample. In other words, it acts a FIFO queue.
                 data_block = np.roll(data_block, -1, axis=0)
                 data_block[-1, :] = data[:, 0:8]
-
-                np.savetxt(file,data,delimiter=',',fmt='%.3f',newline='\n')
                 
 
                 # Code for alpha BCI
@@ -185,17 +182,15 @@ def bci_thread():
 
                     if avg_alpha_pow > alpha_threshold:
                         mind_status = "relaxed"
-                        qubit.control(dphi=+1e-2*np.pi, dtheta=0)
+                        # qubit.control(dphi=+1e-2*np.pi, dtheta=0)
                     else:
                         mind_status = "aroused"
-                        qubit.control(dphi=-1e-2*np.pi, dtheta=0)
+                        # qubit.control(dphi=-1e-2*np.pi, dtheta=0)
 
                     pending_bci_update = True
 
                     data_line = "{:.5f}, {}\n".format(avg_alpha_pow, mind_status)
-                    # print(data_line)
-
-                    file_alpha.write(data_line)
+                    print(data_line)
 
 
 
@@ -215,8 +210,6 @@ def bci_thread():
             del receiveBuffer
 
             #close file
-            file.close()
-            file_alpha.close()
 
             # Close device.
             #-------------------------------------------------------------------------------------
@@ -310,7 +303,6 @@ class TextPrint(object):
 
 
 
-
 def run_qubit(qubit, realtime=True, model=None, data=None):
     global should_exit
     global pending_bci_update
@@ -362,7 +354,7 @@ def on_close():
     if not should_exit:
         should_exit = True
 
-    while not bci_exited:
+    while bci_exited:
         time.sleep(1.0)
         continue
     
@@ -388,14 +380,15 @@ fig = plt.Figure()
 x = np.arange(0, 2*np.pi, 0.01)        # x-array
 
 def animate(i):
-    # qubit.control(dphi=+1e-2*np.pi, dtheta=0)
+    qubit.control(dphi=+1e-2*np.pi, dtheta=0)
     B.clear()
     r, theta, phi = 1, qubit.theta, qubit.phi
     bloch[0] = r*np.sin(theta)*np.cos(phi)
     bloch[1] = r*np.sin(theta)*np.sin(phi)
     bloch[2] = r*np.cos(theta)
     B.add_vectors(bloch)
-    
+    # B.plot_vectors()
+    # B.arr.
     B.render()
     # plt.draw()
     # fig.clear()
@@ -425,6 +418,6 @@ bloch[2] = r*np.cos(theta)
 # B.render(title='1-qubit Bloch Sphere')
 
 # line, = ax.plot(x, np.sin(x))
-ani = animation.FuncAnimation(fig, animate, interval=200, blit=False, cache_frame_data=False, repeat=False)
+ani = animation.FuncAnimation(fig, animate, interval=1, blit=False, cache_frame_data=True, repeat=False)
 
 Tk.mainloop()
