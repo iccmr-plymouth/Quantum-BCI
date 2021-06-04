@@ -370,6 +370,8 @@ def on_close():
         time.sleep(1.0)
         continue
     
+    socket.send_pyobj("end")
+    
     print("Going to destroy!!")
     root.quit()
     root.destroy()   

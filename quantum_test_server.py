@@ -20,7 +20,7 @@ import threading
 from biosppy.signals.eeg import eeg
 from biosppy.signals.eeg import get_power_features
 
-import tkinter
+import tkinter as Tk
 import matplotlib.animation as animation
 
 from matplotlib.backends.backend_tkagg import (
@@ -358,9 +358,9 @@ def on_close():
     if not should_exit:
         should_exit = True
 
-    while not bci_exited:
-        time.sleep(1.0)
-        continue
+    # while not bci_exited:
+    #     time.sleep(1.0)
+    #     continue
     
     print("Going to destroy!!")
     root.quit()
@@ -380,20 +380,20 @@ def _quit():
 
 
 
-def animate(i):
-    qubit.control(dphi=+1e-2*np.pi, dtheta=0)
-    print("Message: "+ str(data))
-    B.clear()
-    r, theta, phi = 1, qubit.theta, qubit.phi
-    bloch[0] = r*np.sin(theta)*np.cos(phi)
-    bloch[1] = r*np.sin(theta)*np.sin(phi)
-    bloch[2] = r*np.cos(theta)
-    B.add_vectors(bloch)
-    # B.plot_vectors()
-    # B.arr.
-    B.render()
-    # plt.draw()
-    # fig.clear()
+# def animate(i):
+#     qubit.control(dphi=+1e-2*np.pi, dtheta=0)
+#     print("Message: "+ str(data))
+#     B.clear()
+#     r, theta, phi = 1, qubit.theta, qubit.phi
+#     bloch[0] = r*np.sin(theta)*np.cos(phi)
+#     bloch[1] = r*np.sin(theta)*np.sin(phi)
+#     bloch[2] = r*np.cos(theta)
+#     B.add_vectors(bloch)
+#     # B.plot_vectors()
+#     # B.arr.
+#     B.render()
+#     # plt.draw()
+#     # fig.clear()
 
 def receive_thread():
     global data
@@ -419,76 +419,59 @@ def update_bloch():
     canvas.draw()
     root.after(1000, update_bloch)
 
+
+
 socket = zmq.Context(zmq.REP).socket(zmq.SUB)
 socket.setsockopt_string(zmq.SUBSCRIBE, '')
 socket.connect('tcp://127.0.0.1:1234')
 
-# plt.ion()
-# fig = plt.Figure()
-# B = Bloch(fig)
-# bloch = [0,0,0]
-# r, theta, phi = 1, qubit.theta, qubit.phi
-# bloch[0] = r*np.sin(theta)*np.cos(phi)
-# bloch[1] = r*np.sin(theta)*np.sin(phi)
-# bloch[2] = r*np.cos(theta)
-# B.add_vectors(bloch)
-# # B.plot_vectors()
-# # B.arr.
-# B.render(title='1-qubit Bloch Sphere')
-# plt.pause(0.01)
-# plt.draw()   
-# plt.show()
+
+fig = plt.Figure()
+mind_status = ""
+
+def animate(i):
+    global mind_status
+    
+    if mind_status != "end":
+        mind_status = socket.recv_pyobj()    
+        print("Message: "+ str(mind_status))
+        qubit.control(dphi=+1e-2*np.pi, dtheta=0)
+        B.clear()
+        r, theta, phi = 1, qubit.theta, qubit.phi
+        bloch[0] = r*np.sin(theta)*np.cos(phi)
+        bloch[1] = r*np.sin(theta)*np.sin(phi)
+        bloch[2] = r*np.cos(theta)
+        B.add_vectors(bloch)
+        # B.plot_vectors()
+        # B.arr.
+        B.render()
+    # plt.draw()
+    # fig.clear()
+
+root = Tk.Tk()
+
+root.protocol("WM_DELETE_WINDOW", on_close)
 
 
-root = tkinter.Tk()
-root.wm_title("Embedding in Tk")
+label = Tk.Label(root,text="Qubit Rotation").grid(column=0, row=0)
 
-fig = Figure(figsize=(5, 4), dpi=100)
-# t = np.arange(0, 3, .01)
-# fig.add_subplot(111).plot(t, 2 * np.sin(2 * np.pi * t))
+canvas = FigureCanvasTkAgg(fig, master=root)
+canvas.get_tk_widget().grid(column=0,row=1)
 
-
+# ax = fig.add_subplot(111)
 B = Bloch(fig)
 bloch = [0,0,0]
 r, theta, phi = 1, qubit.theta, qubit.phi
 bloch[0] = r*np.sin(theta)*np.cos(phi)
 bloch[1] = r*np.sin(theta)*np.sin(phi)
 bloch[2] = r*np.cos(theta)
-B.add_vectors(bloch)
-B.render(title='1-qubit Bloch Sphere')
+# B.add_vectors(bloch)
+# B.render(title='1-qubit Bloch Sphere')
 
+# line, = ax.plot(x, np.sin(x))
+ani = animation.FuncAnimation(fig, animate, interval=200, blit=False, cache_frame_data=True, repeat=False)
 
-canvas = FigureCanvasTkAgg(fig, master=root)  # A tk.DrawingArea.
-canvas.draw()
-canvas.get_tk_widget().pack(side=tkinter.TOP, fill=tkinter.BOTH, expand=1)
-
-toolbar = NavigationToolbar2Tk(canvas, root)
-toolbar.update()
-canvas.get_tk_widget().pack(side=tkinter.TOP, fill=tkinter.BOTH, expand=1)
-
-
-
-def on_key_press(event):
-    print("you pressed {}".format(event.key))
-    key_press_handler(event, canvas, toolbar)
-
-
-canvas.mpl_connect("key_press_event", on_key_press)
-
-
-def _quit():
-    root.quit()     # stops mainloop
-    root.destroy()  # this is necessary on Windows to prevent
-                    # Fatal Python Error: PyEval_RestoreThread: NULL tstate
-
-
-button = tkinter.Button(master=root, text="Quit", command=_quit)
-button.pack(side=tkinter.BOTTOM)
-
-root.after(1000, update_bloch)
-
-root.mainloop()
-
+Tk.mainloop()
 
 
 # B.clear()
