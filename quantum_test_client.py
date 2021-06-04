@@ -31,6 +31,9 @@ from matplotlib.figure import Figure
 
 import multiprocessing
 
+import socket
+
+
 # Define some colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
@@ -190,6 +193,8 @@ def bci_thread():
                         # qubit.control(dphi=-1e-2*np.pi, dtheta=0)
 
                     pending_bci_update = True
+                    
+                    # clientSock.sendto(Message, (UDP_IP_ADDRESS, UDP_PORT_NO))
 
                     data_line = "{:.5f}, {}\n".format(avg_alpha_pow, mind_status)
                     print(data_line)
@@ -381,19 +386,13 @@ fig = plt.Figure()
 
 x = np.arange(0, 2*np.pi, 0.01)        # x-array
 
-def animate(i):
-    qubit.control(dphi=+1e-2*np.pi, dtheta=0)
-    B.clear()
-    r, theta, phi = 1, qubit.theta, qubit.phi
-    bloch[0] = r*np.sin(theta)*np.cos(phi)
-    bloch[1] = r*np.sin(theta)*np.sin(phi)
-    bloch[2] = r*np.cos(theta)
-    B.add_vectors(bloch)
-    # B.plot_vectors()
-    # B.arr.
-    B.render()
-    # plt.draw()
-    # fig.clear()
+
+    
+UDP_IP_ADDRESS = "127.0.0.1"
+UDP_PORT_NO = 6789
+Message = "Hello, Server"
+
+clientSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 if __name__ == '__main__':
     b_thread = threading.Thread(target=bci_thread)
@@ -402,24 +401,6 @@ if __name__ == '__main__':
     root = Tk.Tk()
     
     root.protocol("WM_DELETE_WINDOW", on_close)
-    
-    
-    label = Tk.Label(root,text="Qubit Rotation").grid(column=0, row=0)
-    
-    canvas = FigureCanvasTkAgg(fig, master=root)
-    canvas.get_tk_widget().grid(column=0,row=1)
-    
-    # ax = fig.add_subplot(111)
-    B = Bloch(fig)
-    bloch = [0,0,0]
-    r, theta, phi = 1, qubit.theta, qubit.phi
-    bloch[0] = r*np.sin(theta)*np.cos(phi)
-    bloch[1] = r*np.sin(theta)*np.sin(phi)
-    bloch[2] = r*np.cos(theta)
-    # B.add_vectors(bloch)
-    # B.render(title='1-qubit Bloch Sphere')
-    
-    # line, = ax.plot(x, np.sin(x))
-    ani = animation.FuncAnimation(fig, animate, interval=1, blit=False, cache_frame_data=True, repeat=False)
+
     
     Tk.mainloop()
