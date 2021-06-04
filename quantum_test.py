@@ -356,9 +356,9 @@ def on_close():
     if not should_exit:
         should_exit = True
 
-    while not bci_exited:
-        time.sleep(1.0)
-        continue
+    # while not bci_exited:
+    #     time.sleep(1.0)
+    #     continue
     
     print("Going to destroy!!")
     root.quit()
@@ -396,8 +396,8 @@ def animate(i):
     # fig.clear()
 
 if __name__ == '__main__':
-    b_thread = threading.Thread(target=bci_thread)
-    b_thread.start()
+    # b_thread = threading.Thread(target=bci_thread)
+    # b_thread.start()
     
     root = Tk.Tk()
     
@@ -420,6 +420,6 @@ if __name__ == '__main__':
     # B.render(title='1-qubit Bloch Sphere')
     
     # line, = ax.plot(x, np.sin(x))
-    ani = animation.FuncAnimation(fig, animate, interval=1, blit=False, cache_frame_data=True, repeat=False)
+    ani = animation.FuncAnimation(fig, animate, interval=1000, blit=False, cache_frame_data=True, repeat=False)
     
     Tk.mainloop()

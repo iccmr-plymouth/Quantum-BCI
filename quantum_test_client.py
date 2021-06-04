@@ -31,7 +31,7 @@ from matplotlib.figure import Figure
 
 import multiprocessing
 
-import socket
+import zmq
 
 
 # Define some colors
@@ -194,7 +194,12 @@ def bci_thread():
 
                     pending_bci_update = True
                     
+
+
                     # clientSock.sendto(Message, (UDP_IP_ADDRESS, UDP_PORT_NO))
+                    
+                    
+                    socket.send_pyobj(mind_status)
 
                     data_line = "{:.5f}, {}\n".format(avg_alpha_pow, mind_status)
                     print(data_line)
@@ -382,17 +387,9 @@ def _quit():
                     # Fatal Python Error: PyEval_RestoreThread: NULL tstate
 
 
-fig = plt.Figure()
-
-x = np.arange(0, 2*np.pi, 0.01)        # x-array
-
-
+socket = zmq.Context(zmq.REP).socket(zmq.PUB)
+socket.bind("tcp://*:1234")
     
-UDP_IP_ADDRESS = "127.0.0.1"
-UDP_PORT_NO = 6789
-Message = "Hello, Server"
-
-clientSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 if __name__ == '__main__':
     b_thread = threading.Thread(target=bci_thread)
