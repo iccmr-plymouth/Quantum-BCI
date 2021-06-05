@@ -88,7 +88,7 @@ def main():
         # Declare variables for alpha BCI. `data_block` stores the most recent data and uses it for analysis.
         analysis_block_window = 1.0
         data_block = np.zeros((int(UnicornPy.SamplingRate * analysis_block_window), 8))
-        alpha_threshold = 0.02
+        alpha_threshold = 0.015
 
         try:
             # Start data acquisition.

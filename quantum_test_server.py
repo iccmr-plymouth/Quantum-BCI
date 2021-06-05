@@ -125,7 +125,7 @@ def bci_thread():
         # Declare variables for alpha BCI. `data_block` stores the most recent data and uses it for analysis.
         analysis_block_window = 1.0
         data_block = np.zeros((int(UnicornPy.SamplingRate * analysis_block_window), 8))
-        alpha_threshold = 0.02
+        alpha_threshold = 0.017
 
         try:
             # Start data acquisition.
@@ -420,7 +420,6 @@ def update_bloch():
     root.after(1000, update_bloch)
 
 
-
 socket = zmq.Context(zmq.REP).socket(zmq.SUB)
 socket.setsockopt_string(zmq.SUBSCRIBE, '')
 socket.connect('tcp://127.0.0.1:1234')
@@ -429,13 +428,17 @@ socket.connect('tcp://127.0.0.1:1234')
 fig = plt.Figure()
 mind_status = ""
 
+
 def animate(i):
     global mind_status
     
     if mind_status != "end":
         mind_status = socket.recv_pyobj()    
         print("Message: "+ str(mind_status))
-        qubit.control(dphi=+1e-2*np.pi, dtheta=0)
+        if mind_status == "aroused":                
+            qubit.control(dphi=+1e-2*np.pi, dtheta=0)
+        elif mind_status == "relaxed":                
+            qubit.control(dphi=-1e-2*np.pi, dtheta=0)
         B.clear()
         r, theta, phi = 1, qubit.theta, qubit.phi
         bloch[0] = r*np.sin(theta)*np.cos(phi)
@@ -449,6 +452,7 @@ def animate(i):
     # fig.clear()
 
 root = Tk.Tk()
+
 
 root.protocol("WM_DELETE_WINDOW", on_close)
 
@@ -469,7 +473,7 @@ bloch[2] = r*np.cos(theta)
 # B.render(title='1-qubit Bloch Sphere')
 
 # line, = ax.plot(x, np.sin(x))
-ani = animation.FuncAnimation(fig, animate, interval=200, blit=False, cache_frame_data=True, repeat=False)
+ani = animation.FuncAnimation(fig, animate, interval=500, blit=False, cache_frame_data=False, repeat=False)
 
 Tk.mainloop()
 
