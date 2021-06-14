@@ -267,91 +267,6 @@ class Qubit:
             self.theta = 0
 
 
-class TextPrint(object):
-    """
-    This is a simple class that will help us print to the screen
-    It has nothing to do with the joysticks, just outputting the
-    information.
-
-    Sample Python/Pygame Programs
-    Simpson College Computer Science
-    http://programarcadegames.com/
-    http://simpson.edu/computer-science/
-    """
-    def __init__(self):
-        """ Constructor """
-        self.reset()
-        self.x_pos = 10
-        self.y_pos = 10
-        self.font = pygame.font.Font(None, 20)
- 
-    def print(self, my_screen, text_string):
-        """ Draw text onto the screen. """
-        text_bitmap = self.font.render(text_string, True, BLACK)
-        my_screen.blit(text_bitmap, [self.x_pos, self.y_pos])
-        self.y_pos += self.line_height
- 
-    def reset(self):
-        """ Reset text to the top of the screen. """
-        self.x_pos = 10
-        self.y_pos = 10
-        self.line_height = 15
- 
-    def indent(self):
-        """ Indent the next line of text """
-        self.x_pos += 10
- 
-    def unindent(self):
-        """ Unindent the next line of text """
-        self.x_pos -= 10
-
-
-
-def run_qubit(qubit, realtime=True, model=None, data=None):
-    global should_exit
-    global pending_bci_update
-    global mind_status
-    global q_exited
-    
-    if model is not None:
-        mod = load(model)
-        print(mod)
-    if data is not None:
-        X, y, df = get_df(data) #'oc2.csv'
-        preds = mod.predict(X)
-    
-    # Loop until the user clicks the close button.
-    done = False
-    
-    # Used to manage how fast the screen updates    
-    fig = plt.figure()
-    B = Bloch(fig)
-    bloch = [0,0,0]
-
-
-    # -------- Main Program Loop -----------
-    while not should_exit: # real time
-        # EVENT PROCESSING STEP
-
-        r, theta, phi = 1, qubit.theta, qubit.phi
-        bloch[0] = r*np.sin(theta)*np.cos(phi)
-        bloch[1] = r*np.sin(theta)*np.sin(phi)
-        bloch[2] = r*np.cos(theta)
-        B.add_vectors(bloch)
-        B.render(title='1-qubit Bloch Sphere')
-        plt.pause(0.1)
-        plt.draw()
-        B.clear()
-        fig.clear()
-        
-    q_exited = True
-
-def qubit_thread():
-    """
-    This function is a thread
-    """
-    run_qubit(qubit, realtime=True)
-
 def on_close():
     global should_exit
 
@@ -377,48 +292,6 @@ def _quit():
     root.quit()     # stops mainloop
     root.destroy()  # this is necessary on Windows to prevent
                     # Fatal Python Error: PyEval_RestoreThread: NULL tstate
-
-
-
-# def animate(i):
-#     qubit.control(dphi=+1e-2*np.pi, dtheta=0)
-#     print("Message: "+ str(data))
-#     B.clear()
-#     r, theta, phi = 1, qubit.theta, qubit.phi
-#     bloch[0] = r*np.sin(theta)*np.cos(phi)
-#     bloch[1] = r*np.sin(theta)*np.sin(phi)
-#     bloch[2] = r*np.cos(theta)
-#     B.add_vectors(bloch)
-#     # B.plot_vectors()
-#     # B.arr.
-#     B.render()
-#     # plt.draw()
-#     # fig.clear()
-
-def receive_thread():
-    global data
-    while not should_exit:
-        data, addr = serverSock.recvfrom(1024)
-        print("Message: "+ str(data))
-        time.sleep(0.01)
-
-
-def update_bloch():
-    # mind_status = socket.recv_pyobj()
-    B.clear()
-    qubit.control(dphi=+1e-2*np.pi, dtheta=0)
-    # print("Message: "+ str(mind_status))
-    r, theta, phi = 1, qubit.theta, qubit.phi
-    bloch[0] = r*np.sin(theta)*np.cos(phi)
-    bloch[1] = r*np.sin(theta)*np.sin(phi)
-    bloch[2] = r*np.cos(theta)
-    B.add_vectors(bloch)
-    # B.plot_vectors()
-    # B.arr.
-    B.render(title='1-qubit Bloch Sphere')
-    canvas.draw()
-    root.after(1000, update_bloch)
-
 
 socket = zmq.Context(zmq.REP).socket(zmq.SUB)
 socket.setsockopt_string(zmq.SUBSCRIBE, '')
@@ -476,23 +349,3 @@ bloch[2] = r*np.cos(theta)
 ani = animation.FuncAnimation(fig, animate, interval=500, blit=False, cache_frame_data=False, repeat=False)
 
 Tk.mainloop()
-
-
-# B.clear()
-# fig.clear()
-# while True:
-#     # mind_status = socket.recv_pyobj()
-#     qubit.control(dphi=+1e-2*np.pi, dtheta=0)
-#     # print("Message: "+ str(mind_status))
-#     r, theta, phi = 1, qubit.theta, qubit.phi
-#     bloch[0] = r*np.sin(theta)*np.cos(phi)
-#     bloch[1] = r*np.sin(theta)*np.sin(phi)
-#     bloch[2] = r*np.cos(theta)
-#     B.add_vectors(bloch)
-#     # B.plot_vectors()
-#     # B.arr.
-#     B.render(title='1-qubit Bloch Sphere')
-#     plt.pause(0.01)
-#     plt.draw()   
-#     B.clear()
-#     fig.clear()
