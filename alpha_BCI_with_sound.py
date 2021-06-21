@@ -23,8 +23,6 @@ def main():
     #-------------------------------------------------------------------------------------
     global bci_exited
     global wf_seek
-    global morse_code
-    global to_print
 
     TestsignaleEnabled = False;
     FrameLength = 1;
@@ -39,7 +37,7 @@ def main():
     b, a = signal.butter(8, [1/125.0, 30/125.0], 'band')
     b_notch, a_notch = signal.iirnotch(50.0, 30.0, 250.0)
     
-
+    morse_code = np.zeros((2,))
     morse_index = 0
 
 
@@ -179,8 +177,8 @@ def main():
                     # print(data_line)
 
                     if morse_index >= 4 and morse_index % 4 == 2:
-                        to_print = True                        
-                        # print("morse code: {}".format(morse_code))
+                        # pass
+                        print("morse code: {}".format(morse_code))
                         # sys.stdout.write("morse code:")
                     
                     morse_index += 1
@@ -244,7 +242,6 @@ def play_audio():
     """This function is a thread. It starts when the play button is clicked."""
     global is_playing
     global wf_seek
-    global to_print
         
     wf1Blocks = [block for block in
            sf.blocks('click-16k.wav', blocksize = chunk, overlap = 0, fill_value=0, dtype = 'float32')]
@@ -269,12 +266,6 @@ def play_audio():
                     
             stream.write(data)
             
-        elif wf_seek == len(wf1Blocks) -1 and to_print:
-           wf_seek += 1
-           print("Morse code: {}".format(morse_code))
-           to_print = False
-            
-            
         else:
             time.sleep(0.0001)
     
@@ -290,8 +281,6 @@ chunk = 2000
 wf_seek = 500000
 is_playing = True
 audio_thread.start()
-to_print = False
-morse_code = np.zeros((2,))
 
 #execute main
 should_exit = False
