@@ -38,7 +38,7 @@ def main():
     b_notch, a_notch = signal.iirnotch(50.0, 30.0, 250.0)
     
     morse_code = np.zeros((2,))
-    morse_index = 0
+    morse_index = 8
 
 
     try:
@@ -97,7 +97,7 @@ def main():
         # Declare variables for alpha BCI. `data_block` stores the most recent data and uses it for analysis.
         analysis_block_window = 1.0
         data_block = np.zeros((int(UnicornPy.SamplingRate * analysis_block_window), 8))
-        alpha_threshold = 0.015
+        alpha_threshold = 0.02
         click_time = 1.0
 
         try:
@@ -161,22 +161,22 @@ def main():
 
                     if avg_alpha_pow > alpha_threshold:
                         mind_status = "relaxed"
-                        if morse_index % 4 == 1:
+                        if morse_index % 12 == 3:
                             morse_code[0] = 0
-                        elif morse_index % 4 == 2:
+                        elif morse_index % 12 == 7:
                             morse_code[1] = 0
 
                     else:
                         mind_status = "aroused"
-                        if morse_index % 4 == 1:
+                        if morse_index % 12 == 4:
                             morse_code[0] = 1
-                        elif morse_index % 4 == 2:
+                        elif morse_index % 12 == 8:
                             morse_code[1] = 1
 
                     # data_line = "{:.5f}, {}\n".format(avg_alpha_pow, mind_status)
                     # print(data_line)
 
-                    if morse_index >= 4 and morse_index % 4 == 2:
+                    if morse_index >= 12 and morse_index % 12 == 8:
                         # pass
                         print("morse code: {}".format(morse_code))
                         # sys.stdout.write("morse code:")
