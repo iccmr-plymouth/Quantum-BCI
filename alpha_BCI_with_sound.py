@@ -23,6 +23,8 @@ def main():
     #-------------------------------------------------------------------------------------
     global bci_exited
     global wf_seek
+    global morse_code
+    global to_print
 
     TestsignaleEnabled = False;
     FrameLength = 1;
@@ -37,7 +39,7 @@ def main():
     b, a = signal.butter(8, [1/125.0, 30/125.0], 'band')
     b_notch, a_notch = signal.iirnotch(50.0, 30.0, 250.0)
     
-    morse_code = np.zeros((2,))
+
     morse_index = 0
 
 
@@ -73,8 +75,8 @@ def main():
         print()
 
         # Create a file to store data.
-        file = open(DataFile, "wb")
-        file_alpha = open(data_file_alpha, "w")
+        # file = open(DataFile, "wb")
+        # file_alpha = open(data_file_alpha, "w")
 
 
         # Initialize acquisition members.
@@ -134,7 +136,7 @@ def main():
                 data_block = np.roll(data_block, -1, axis=0)
                 data_block[-1, :] = data[:, 0:8]
 
-                np.savetxt(file,data,delimiter=',',fmt='%.3f',newline='\n')
+                # np.savetxt(file,data,delimiter=',',fmt='%.3f',newline='\n')
                 
 
                 # Code for alpha BCI
@@ -173,17 +175,17 @@ def main():
                         elif morse_index % 4 == 2:
                             morse_code[1] = 1
 
-                    data_line = "{:.5f}, {}\n".format(avg_alpha_pow, mind_status)
+                    # data_line = "{:.5f}, {}\n".format(avg_alpha_pow, mind_status)
                     # print(data_line)
 
                     if morse_index >= 4 and morse_index % 4 == 2:
-                        # pass
-                        print("morse code:", flush=True)
+                        to_print = True                        
+                        # print("morse code: {}".format(morse_code))
                         # sys.stdout.write("morse code:")
                     
                     morse_index += 1
 
-                    file_alpha.write(data_line)
+                    # file_alpha.write(data_line)
 
 
 
@@ -202,8 +204,8 @@ def main():
             del receiveBuffer
 
             #close file
-            file.close()
-            file_alpha.close()
+            # file.close()
+            # file_alpha.close()
 
             # Close device.
             #-------------------------------------------------------------------------------------
@@ -242,6 +244,7 @@ def play_audio():
     """This function is a thread. It starts when the play button is clicked."""
     global is_playing
     global wf_seek
+    global to_print
         
     wf1Blocks = [block for block in
            sf.blocks('click-16k.wav', blocksize = chunk, overlap = 0, fill_value=0, dtype = 'float32')]
@@ -266,6 +269,12 @@ def play_audio():
                     
             stream.write(data)
             
+        elif wf_seek == len(wf1Blocks) -1 and to_print:
+           wf_seek += 1
+           print("Morse code: {}".format(morse_code))
+           to_print = False
+            
+            
         else:
             time.sleep(0.0001)
     
@@ -281,6 +290,8 @@ chunk = 2000
 wf_seek = 500000
 is_playing = True
 audio_thread.start()
+to_print = False
+morse_code = np.zeros((2,))
 
 #execute main
 should_exit = False
