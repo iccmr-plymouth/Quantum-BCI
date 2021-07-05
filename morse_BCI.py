@@ -213,7 +213,7 @@ def main():
             del device
             print("Disconnected from Unicorn")
 
-    except Unicorn.DeviceException as e:
+    except UnicornPy.DeviceException as e:
         print(e)
     except Exception as e:
         print("An unknown error occured. %s" %e)
