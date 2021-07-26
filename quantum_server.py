@@ -13,6 +13,7 @@ from qiskit.visualization.bloch import Bloch
 from qiskit import QuantumCircuit
 from dataclasses import dataclass
 import matplotlib.pyplot as plt
+import os
 
 
 @dataclass
@@ -62,6 +63,30 @@ def main(qubit, realtime=True, model=None, data=None):
     plt.pause(1.0)
     plt.draw()
 
+def parse_morse_code(n, current_angle):
+    if (n == np.array([0, 1])).all():
+        command = "start-programme"
+    
+    elif (n == np.array([1, 0])).all():
+        if current_angle == 0:
+            current_angle += 1
+            command = "change-angle"
+
+        elif current_angle == 1:
+            command = "end-programme"
+
+    elif (n == np.array([1, 1])).all():
+        command = "increase-angle"
+
+    elif (n == np.array([0, 0])).all():
+        command = "decrease-angle"
+    
+    else:
+        command = "unknown"
+    
+    return command, current_angle
+
+
 if __name__ == '__main__':
     socket = zmq.Context(zmq.REP).socket(zmq.SUB)
     socket.setsockopt_string(zmq.SUBSCRIBE, '')
@@ -70,44 +95,67 @@ if __name__ == '__main__':
     qubit = Qubit(phi=0, theta=0.5*np.pi)# default values 0, 0
     # main(qubit, realtime=True)
     
-    fig = plt.figure()
-    B = Bloch(fig)
-    bloch = [0,0,0]
-
-    B.clear()
-    r, theta, phi = 1, qubit.theta, qubit.phi
-    bloch[0] = r*np.sin(theta)*np.cos(phi)
-    bloch[1] = r*np.sin(theta)*np.sin(phi)
-    bloch[2] = r*np.cos(theta)
-    B.add_vectors(bloch)
-    plt.pause(0.01)
-    B.render(title='1-qubit Bloch Sphere')
 
     # plt.draw()
     # B.clear()
     # fig.clear()
     
-    mind_status = ""
-    plt.pause(2.0)
+    morse_code = np.array([-1, -1])
+    command = "unknown"
     
-    while mind_status != "end":
-        mind_status = socket.recv_pyobj()
+    has_started = False
+    current_angle = 0
+    os.system("cls")
 
-        if mind_status == "relaxed":                
-            qubit.control(dphi=+1e-2*np.pi, dtheta=0)
-        elif mind_status == "aroused":                
-            qubit.control(dphi=-1e-2*np.pi, dtheta=0)
-            
-        B.clear()
-        r, theta, phi = 1, qubit.theta, qubit.phi
-        bloch[0] = r*np.sin(theta)*np.cos(phi)
-        bloch[1] = r*np.sin(theta)*np.sin(phi)
-        bloch[2] = r*np.cos(theta)
-        B.add_vectors(bloch)
-        # B.plot_vectors()
-        # B.arr.
-        # plt.pause(0.01)
-        B.render()        
+    while command != "end-programme":
+        morse_code = socket.recv_pyobj()
+        command, current_angle = parse_morse_code(morse_code, current_angle)
         
-        print(mind_status)
-        plt.pause(2.0)
+        if command == "start-programme" and not has_started:
+            fig = plt.figure()
+            B = Bloch(fig)
+            bloch = [0,0,0]
+        
+            B.clear()
+            r, theta, phi = 1, qubit.theta, qubit.phi
+            bloch[0] = r*np.sin(theta)*np.cos(phi)
+            bloch[1] = r*np.sin(theta)*np.sin(phi)
+            bloch[2] = r*np.cos(theta)
+            B.add_vectors(bloch)
+            plt.pause(0.01)
+            B.render(title='1-qubit Bloch Sphere')
+
+            print("Morse code: {}, Command: {}\n".format(morse_code, command))            
+            plt.pause(2.0)
+            has_started = True
+            
+        elif has_started:
+            
+            if command == "increase-angle" and current_angle == 0:                
+                qubit.control(dphi=+4e-2*np.pi, dtheta=0)
+            elif command == "decrease-angle" and current_angle == 0:                
+                qubit.control(dphi=-4e-2*np.pi, dtheta=0)
+    
+            elif command == "increase-angle" and current_angle == 1:                
+                qubit.control(dphi=0, dtheta=+4e-2*np.pi)
+            elif command == "decrease-angle" and current_angle == 1:                
+                qubit.control(dphi=0, dtheta=-4e-2*np.pi)
+                
+            
+            B.clear()
+            r, theta, phi = 1, qubit.theta, qubit.phi
+            bloch[0] = r*np.sin(theta)*np.cos(phi)
+            bloch[1] = r*np.sin(theta)*np.sin(phi)
+            bloch[2] = r*np.cos(theta)
+            B.add_vectors(bloch)
+            # B.plot_vectors()
+            # B.arr.
+            # plt.pause(0.01)
+            B.render()        
+            
+            print("Morse code: {}, Command: {}\n".format(morse_code, command))
+            plt.pause(2.0)
+            
+        else:
+            print("Morse code: {}, Invalid-command\n".format(morse_code))
+            

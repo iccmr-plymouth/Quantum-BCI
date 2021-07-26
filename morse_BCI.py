@@ -99,7 +99,7 @@ def main():
         # Declare variables for alpha BCI. `data_block` stores the most recent data and uses it for analysis.
         analysis_block_window = 1.0
         data_block = np.zeros((int(UnicornPy.SamplingRate * analysis_block_window), 8))
-        alpha_threshold = 0.02
+        alpha_threshold = 0.015
         click_time = 1.0
 
         try:
@@ -180,8 +180,8 @@ def main():
 
                     if morse_index >= 12 and morse_index % 12 == 8:
                         # pass
-                        print("morse code: {}".format(morse_code))
-                        socket.send_pyobj(mind_status)
+                        # print("morse code: {}".format(morse_code))
+                        socket.send_pyobj(morse_code)
                         # sys.stdout.write("morse code:")
                     
                     morse_index += 1
@@ -238,7 +238,7 @@ def on_close():
         time.sleep(1.0)
         continue
     
-    socket.send_pyobj("end")
+    socket.send_pyobj(np.array([1, 0]))
     
     top.destroy()   
 
