@@ -20,6 +20,12 @@ import sys
 
 import zmq
 
+def calculate_mental_state(features):
+    """
+    This function should return 'relaxed' or 'aroused'.
+    `features` is a 4x7x8 dimensional vector which can be fed into the machine learning algorithm in real-time.
+    """
+
 def main():
     # Specifications for the data acquisition.
     #-------------------------------------------------------------------------------------
@@ -153,23 +159,22 @@ def main():
                     # Extract the powers of EEG bands using the 'biosppy.signals.eeg' package
                     ts, filtered, features_ts, theta, alpha_low, alpha_high, beta, gamma, plf_pairs, plf = eeg(signal=y_notched,
                         sampling_rate=UnicornPy.SamplingRate, show=False)
-
-                    a_low_pow = np.mean(alpha_low[:, :1])
-                    a_high_pow = np.mean(alpha_high[:, :1])
-                    avg_alpha_pow = (a_low_pow + a_high_pow) / 2.0
+                    
+                    features = np.stack((alpha_low, alpha_high, beta, theta), axis=0)
 
                     mind_status = "unknown"
                     
+                    #calculate_mental_state can return two possible strings --- "relaxed" or "aroused"
 
-                    if avg_alpha_pow > alpha_threshold:
-                        mind_status = "relaxed"
+                    mind_status = calculate_mental_state(features)                    
+                    
+                    if mind_status == "relaxed":
                         if morse_index % 12 == 3:
                             morse_code[0] = 0
                         elif morse_index % 12 == 7:
                             morse_code[1] = 0
 
-                    else:
-                        mind_status = "aroused"
+                    elif mind_status == "aroused":
                         if morse_index % 12 == 4:
                             morse_code[0] = 1
                         elif morse_index % 12 == 8:
