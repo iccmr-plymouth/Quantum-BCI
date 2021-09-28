@@ -1,6 +1,7 @@
 import UnicornPy
 import numpy as np
 from scipy import signal
+from joblib import load
 
 from biosppy import storage
 from biosppy.signals.eeg import eeg
@@ -20,11 +21,34 @@ import sys
 
 import zmq
 
+_MODEL_PATH_ = '.' # TODO: pls add here the path to the model
+
 def calculate_mental_state(features):
     """
     This function should return 'relaxed' or 'aroused'.
     `features` is a 4x7x8 dimensional vector which can be fed into the machine learning algorithm in real-time.
     """
+    model = load(_MODEL_PATH_)
+    
+    def flatten_vector(features):
+        """Returns a flattened version of features to feed it
+        to the model.
+        """
+        number_of_features=32 # The numbers of features used to train the model
+        fv = np.ones([1,number_of_features]) # TODO: pls change this to the appropiate
+        # transformation of the flattened version, with the feature columns being the same as the model used
+        return fv
+
+    label = model.predict(flatten_vector(features))
+
+    if label == 1:
+        # change the label assignation accordingly
+        result = 'relaxed'
+    else:
+        result = 'aroused'
+    
+    return result
+
 
 def main():
     # Specifications for the data acquisition.
