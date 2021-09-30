@@ -27,7 +27,12 @@ def calculate_mental_state(features):
     """
     This function should return 'relaxed' or 'aroused'.
     `features` is a 4x7x8 dimensional vector which can be fed into the machine learning algorithm in real-time.
+    4 corresponds to alpha_low, alpha_high, beta and theta waves. 7 stands for time steps and 8 stands for EEG channels.
     """
+    
+    # Expand the dimension of the vector to 1x4x7x8
+    features = np.expand_dims(features, axis=0)
+    
     model = load(_MODEL_PATH_)
     
     def flatten_vector(features):
@@ -40,12 +45,14 @@ def calculate_mental_state(features):
         return fv
 
     label = model.predict(flatten_vector(features))
+    
+    # As you are predicting one trial in the old format, you might want to change this to label[0]?
 
     if label == 1:
         # change the label assignation accordingly
-        result = 'relaxed'
-    else:
         result = 'aroused'
+    else:
+        result = 'relaxed'
     
     return result
 
