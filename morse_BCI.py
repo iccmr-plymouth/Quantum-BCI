@@ -29,29 +29,27 @@ def calculate_mental_state(features):
     `features` is a 4x7x8 dimensional vector which can be fed into the machine learning algorithm in real-time.
     4 corresponds to alpha_low, alpha_high, beta and theta waves. 7 stands for time steps and 8 stands for EEG channels.
     """
-    
+    def gendata(features):
+        return features.transpose(1,0,2).reshape(7,-1)
     # Expand the dimension of the vector to 1x4x7x8
-    features = np.expand_dims(features, axis=0)
+    # Carlos: adding a new dimension won't solve it. The shape is not 4x7x8 is Nx32 where N is the number of timesteps.
+    #features = np.expand_dims(features, axis=0)
     
     model = load(_MODEL_PATH_)
     
-    def flatten_vector(features):
-        """Returns a flattened version of features to feed it
-        to the model.
-        """
-        number_of_features=32 # The numbers of features used to train the model
-        fv = np.ones([1,number_of_features]) # TODO: pls change this to the appropiate
-        # transformation of the flattened version, with the feature columns being the same as the model used
-        return fv
-
-    label = model.predict(flatten_vector(features))
+    # flatten not needed anymore
+    # now label is an array of labels, 1 for each time step, so I will use a votation system to choose the 
+    labels = model.predict(gendata(features))
+    labelsum = labels.sum()
     
     # As you are predicting one trial in the old format, you might want to change this to label[0]?
 
-    if label == 1:
+    if labelsum > 3:
+        # if the labels sum more than 3 that means that most of them are 1
         # change the label assignation accordingly
         result = 'aroused'
     else:
+        # if the labels sum less than 3 that means that most of them are 0
         result = 'relaxed'
     
     return result
