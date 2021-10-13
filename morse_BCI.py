@@ -21,7 +21,7 @@ import sys
 
 import zmq
 
-_MODEL_PATH_ = '.' # TODO: pls add here the path to the model
+_MODEL_PATH_ = './mod_knn_oc.joblib' # TODO: Now we have to make a notebook that uses this script
 
 def calculate_mental_state(features):
     """
