@@ -28,4 +28,4 @@ Before performing analysis on EEG, please apply a notch filter of 50 Hz and a ba
 
 # Demo
 
-https://github.com/satvik-venkatesh/Quantum-BCI/blob/84e7af4a524d0ee86b785b064b7fe3aa7d87f334/Quantum%20BCI%2026-7-21.mp4
+https://user-images.githubusercontent.com/52415916/137694698-4b6ea069-4d9f-4538-b3f7-81ab47d8188e.mp4
