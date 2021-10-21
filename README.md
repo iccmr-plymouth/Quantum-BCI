@@ -2,7 +2,7 @@
 Controlling a quantum computer with a BCI
 
 # Offline Experimental set-up
-To start the experiment, I wear the EEG headset and run the [alpha_offline_expt.py](https://github.com/satvik-venkatesh/Quantum-BCI/blob/main/alpha_offline_expt.py) file. The ground truth is initially set to -1 as I am not ready yet. Once I am ready, I press a key on my keyboard that sets the ground truth label. When I go to a relaxed state (or close my eyes), the ground truth is set to 1. When I go to an aroused state (or open my eyes), the ground truth is set to 0. I press a different key on the keyboard to choose between different mental states. Just before I end the experiment, I set the ground truth back to -1.
+To start the experiment, I wear the EEG headset and run the [alpha_offline_expt.py](https://github.com/satvik-venkatesh/Quantum-BCI/blob/main/alpha_offline_expt.py) file. The ground truth is initially set to -1 as I am not ready yet. Once I am ready, I press a key on my keyboard that sets the ground truth label. When I go to a relaxed state, the ground truth is set to 1. When I go to an aroused state, the ground truth is set to 0. I press a different key on the keyboard to choose between different mental states. Just before I end the experiment, I set the ground truth back to -1.
 
 
 # Format of csv files
@@ -15,13 +15,11 @@ The first column contains the alpha power, the second column contains the thresh
  
  
 # Types of experiments
-Please check the [experiments](https://github.com/satvik-venkatesh/Quantum-BCI/tree/main/experiments) folder. You will find two types of experiments --- (1) Open / Closed (OC) (2) Aroused / Relaxed (AR).
+Please check the [experiments](https://github.com/satvik-venkatesh/Quantum-BCI/tree/main/experiments) folder.
 
 ## Open / Closed (OC)
-As mentioned above, data.csv contains the raw EEG + ground truth labels. Here, I am opening and closing my eyes to alter my mental state. In data_alpha.csv, you will see that the calculated output matches the ground truth to a good extent.
+As mentioned above, data.csv contains the raw EEG + ground truth labels. Here, I am altering my mental state. In data_alpha.csv, you will see a basic calculation using threshold-dependent values for alpha power without the machine learning.
 
-## Aroused / Relaxed (AR)
-Here, I do not focus on opening or closing my eyes. I am directly altering my mental state by becoming more active or relaxing. As you can see in data_alpha.csv, our threshold-based outputs are not great. Perhaps, machine learning might improve the performance of the system.
 
 # Data preprocessing
 Before performing analysis on EEG, please apply a notch filter of 50 Hz and a bandpass filter (perhaps, from 2 to 30Hz). The filtering has been done in the [alpha_offline_expt.py](https://github.com/satvik-venkatesh/Quantum-BCI/blob/main/alpha_offline_expt.py) file. Please read through line 156 to 183 that contain the code for filtering. I have used a Python package called [biosppy.signals.eeg](https://github.com/PIA-Group/BioSPPy/blob/212c3dcbdb1ec43b70ba7199deb5eb22bcb78fd0/biosppy/signals/eeg.py). [Here](https://biosppy.readthedocs.io/en/stable/biosppy.signals.html#biosppy-signals-eeg) is the documentation for the Python package. It was useful to extract alpha and beta frequency bands, which can be used as feastures for your machine learning algorithm.
