@@ -17,7 +17,6 @@ The first column contains the alpha power, the second column contains the thresh
 # Types of experiments
 Please check the [experiments](https://github.com/satvik-venkatesh/Quantum-BCI/tree/main/experiments) folder.
 
-## Open / Closed (OC)
 As mentioned above, data.csv contains the raw EEG + ground truth labels. Here, I am altering my mental state. In data_alpha.csv, you will see a basic calculation using threshold-dependent values for alpha power without the machine learning.
 
 
