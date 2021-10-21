@@ -23,6 +23,9 @@ As mentioned above, data.csv contains the raw EEG + ground truth labels. Here, I
 # Data preprocessing
 Before performing analysis on EEG, please apply a notch filter of 50 Hz and a bandpass filter (perhaps, from 2 to 30Hz). The filtering has been done in the [alpha_offline_expt.py](https://github.com/satvik-venkatesh/Quantum-BCI/blob/main/alpha_offline_expt.py) file. Please read through line 156 to 183 that contain the code for filtering. I have used a Python package called [biosppy.signals.eeg](https://github.com/PIA-Group/BioSPPy/blob/212c3dcbdb1ec43b70ba7199deb5eb22bcb78fd0/biosppy/signals/eeg.py). [Here](https://biosppy.readthedocs.io/en/stable/biosppy.signals.html#biosppy-signals-eeg) is the documentation for the Python package. It was useful to extract alpha and beta frequency bands, which can be used as feastures for your machine learning algorithm.
 
+# Feature Extraction
+- The file [process_EEG.py](https://github.com/satvik-venkatesh/Quantum-BCI/blob/main/process_EEG.py) contains the procedure for feature extraction for the machine learning algorithm.
+
 # Online System
 Primarily, there are two files for the online experiment, which actually controls the qubit using the BCI. The program adopts a client-server architecture. 'quantum_server.py' controls qubit and 'morse_BCI.py' encondes the brain waves into brain codes. First run the 'quantum_server.py' through the commandline and 'morse_BCI.py' through another command line, as shown in the video below.
 
